@@ -11224,7 +11224,7 @@ function fromByteArray (uint8) {
       , opera: t
       , version: versionIdentifier || getFirstMatch(/(?:opera|opr|opios)[\s\/](\d+(\.\d+)?)/i)
       }
-    } else if (/opr|opios/i.test(ua)) {
+    } else if (/opr\/|opios/i.test(ua)) {
       // a new Opera
       result = {
         name: 'Opera'
@@ -11519,7 +11519,7 @@ function fromByteArray (uint8) {
         default: return undefined
       }
     }
-    
+
     // OS version extraction
     var osVersion = '';
     if (result.windows) {
@@ -51306,7 +51306,7 @@ var InfoView = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (InfoView.__proto__ || Object.getPrototypeOf(InfoView)).call(this, props));
 
         _this.subscriptions = [];
-        _this.state = { messages: [], currentlyRunning: true };
+        _this.state = { messages: [] };
         return _this;
     }
 
@@ -51316,11 +51316,8 @@ var InfoView = function (_React$Component) {
             var _this2 = this;
 
             this.updateMessages(this.props);
-            this.updateRunning(this.props);
             this.subscriptions.push(langservice_1.server.allMessages.on(function (allMsgs) {
                 return _this2.updateMessages(_this2.props);
-            }), langservice_1.currentlyRunning.updated.on(function (fns) {
-                return _this2.updateRunning(_this2.props);
             }));
         }
     }, {
@@ -51332,13 +51329,6 @@ var InfoView = function (_React$Component) {
                 messages: langservice_1.allMessages.filter(function (v) {
                     return v.file_name === _this3.props.file;
                 })
-            });
-        }
-    }, {
-        key: "updateRunning",
-        value: function updateRunning(nextProps) {
-            this.setState({
-                currentlyRunning: langservice_1.currentlyRunning.value.indexOf(nextProps.file) !== -1
             });
         }
     }, {
@@ -51374,19 +51364,17 @@ var InfoView = function (_React$Component) {
     }, {
         key: "render",
         value: function render() {
-            var isRunning = this.state.currentlyRunning && React.createElement("div", { style: { fontStyle: 'italic', marginBottom: '1em' } }, "running...");
             var goal = this.state.goal && React.createElement("div", { key: 'goal' }, GoalWidget(this.state.goal));
             var msgs = this.state.messages.map(function (msg, i) {
                 return React.createElement("div", { key: i }, MessageWidget({ msg: msg }));
             });
-            return React.createElement("div", null, isRunning, goal, msgs);
+            return React.createElement("div", null, goal, msgs);
         }
     }, {
         key: "componentWillReceiveProps",
         value: function componentWillReceiveProps(nextProps) {
             this.updateMessages(nextProps);
             this.refreshGoal(nextProps);
-            this.updateRunning(nextProps);
         }
     }, {
         key: "refreshGoal",
@@ -51409,26 +51397,102 @@ var InfoView = function (_React$Component) {
     return InfoView;
 }(React.Component);
 
-var LeanEditor = function (_React$Component2) {
-    _inherits(LeanEditor, _React$Component2);
+var PageHeader = function (_React$Component2) {
+    _inherits(PageHeader, _React$Component2);
+
+    function PageHeader(props) {
+        _classCallCheck(this, PageHeader);
+
+        var _this5 = _possibleConstructorReturn(this, (PageHeader.__proto__ || Object.getPrototypeOf(PageHeader)).call(this, props));
+
+        _this5.subscriptions = [];
+        _this5.state = { currentlyRunning: true };
+        return _this5;
+    }
+
+    _createClass(PageHeader, [{
+        key: "componentWillMount",
+        value: function componentWillMount() {
+            var _this6 = this;
+
+            this.updateRunning(this.props);
+            this.subscriptions.push(langservice_1.currentlyRunning.updated.on(function (fns) {
+                return _this6.updateRunning(_this6.props);
+            }));
+        }
+    }, {
+        key: "updateRunning",
+        value: function updateRunning(nextProps) {
+            this.setState({
+                currentlyRunning: langservice_1.currentlyRunning.value.indexOf(nextProps.file) !== -1
+            });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = this.subscriptions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var s = _step2.value;
+
+                    s.dispose();
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            this.subscriptions = [];
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var isRunning = this.state.currentlyRunning && React.createElement("div", { style: { fontStyle: 'italic' } }, "(running...)");
+            return React.createElement("div", { style: { height: '100%' } }, React.createElement("img", { src: './lean_logo.svg', style: { height: '100%', float: 'left', paddingLeft: '1em', paddingRight: '3em' } }), React.createElement("div", { style: { padding: '1em' } }, React.createElement("div", { style: { fontSize: '80%' } }, "Live in-browser version of the ", React.createElement("a", { href: 'https://leanprover.github.io/' }, "Lean theorem prover"), "."), isRunning));
+        }
+    }, {
+        key: "componentWillReceiveProps",
+        value: function componentWillReceiveProps(nextProps) {
+            this.updateRunning(nextProps);
+        }
+    }]);
+
+    return PageHeader;
+}(React.Component);
+
+var LeanEditor = function (_React$Component3) {
+    _inherits(LeanEditor, _React$Component3);
 
     function LeanEditor(props) {
         _classCallCheck(this, LeanEditor);
 
-        var _this5 = _possibleConstructorReturn(this, (LeanEditor.__proto__ || Object.getPrototypeOf(LeanEditor)).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (LeanEditor.__proto__ || Object.getPrototypeOf(LeanEditor)).call(this, props));
 
-        _this5.state = { split: 'vertical' };
-        _this5.model = monaco.editor.createModel(_this5.props.initialValue, 'lean', monaco.Uri.file(_this5.props.file));
-        _this5.model.onDidChangeContent(function (e) {
-            return _this5.props.onValueChange && _this5.props.onValueChange(_this5.model.getValue());
+        _this7.state = { split: 'vertical' };
+        _this7.model = monaco.editor.createModel(_this7.props.initialValue, 'lean', monaco.Uri.file(_this7.props.file));
+        _this7.model.onDidChangeContent(function (e) {
+            return _this7.props.onValueChange && _this7.props.onValueChange(_this7.model.getValue());
         });
-        return _this5;
+        return _this7;
     }
 
     _createClass(LeanEditor, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this6 = this;
+            var _this8 = this;
 
             var node = react_dom_1.findDOMNode(this.refs.monaco);
             var options = {
@@ -51439,11 +51503,12 @@ var LeanEditor = function (_React$Component2) {
                 cursorStyle: 'line',
                 automaticLayout: true,
                 cursorBlinking: 'solid',
-                model: this.model
+                model: this.model,
+                minimap: { enabled: false }
             };
             this.editor = monaco.editor.create(node, options);
             this.editor.onDidChangeCursorPosition(function (e) {
-                return _this6.setState({ cursor: { line: e.position.lineNumber, column: e.position.column - 1 } });
+                return _this8.setState({ cursor: { line: e.position.lineNumber, column: e.position.column - 1 } });
             });
             this.determineSplit();
             window.addEventListener('resize', this.updateDimensions.bind(this));
@@ -51469,11 +51534,11 @@ var LeanEditor = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            return React.createElement("div", { style: { height: '95vh', width: '95vw' }, ref: 'root' }, React.createElement(SplitPane, { split: this.state.split, defaultSize: '50%', allowResize: true, style: { height: '95%' } }, React.createElement("div", { ref: 'monaco', style: {
-                    height: 'calc(100% - 35px)', width: '100%',
+            return React.createElement("div", null, React.createElement("div", { style: { height: '5em', overflow: 'hidden' } }, React.createElement(PageHeader, { file: this.props.file })), React.createElement("div", { style: { height: 'calc(99vh - 5em)', width: '100%', position: 'relative' }, ref: 'root' }, React.createElement(SplitPane, { split: this.state.split, defaultSize: '50%', allowResize: true }, React.createElement("div", { ref: 'monaco', style: {
+                    height: '100%', width: '100%',
                     margin: '1ex', marginRight: '2em',
                     overflow: 'hidden'
-                } }), React.createElement("div", { style: { overflowY: 'auto', height: '100%', margin: '1ex' } }, React.createElement(InfoView, { file: this.props.file, cursor: this.state.cursor }))));
+                } }), React.createElement("div", { style: { overflowY: 'scroll', height: 'calc(100% - 10px)', margin: '1ex' } }, React.createElement(InfoView, { file: this.props.file, cursor: this.state.cursor })))));
         }
     }]);
 
@@ -51517,7 +51582,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.leanSyntax = {
     // Set defaultToken to invalid to see what you do not tokenize yet
     // defaultToken: 'invalid',
-    keywords: ['def', 'definition', 'lemma', 'theorem', 'example', 'axiom', 'constant', 'constants', 'class', 'instance', 'structure', 'inductive', 'variable', 'variables', 'universe', 'universes', 'attribute', 'namespace', 'section', 'noncomputable', 'do', 'have', 'let', 'assume', 'suffices', 'show', 'from', 'local', 'notation', 'open', 'export', 'by', 'begin', 'end', 'λ', '∀', 'Π', '∃', 'Σ', 'if', 'this', 'break', 'protected', 'private', 'else', '#print', '#check', '#eval', '#reduce', '#help', '#exit', '#unify', '#compile', 'set_option', 'import', 'prelude'],
+    keywords: ['def', 'definition', 'lemma', 'theorem', 'example', 'axiom', 'constant', 'constants', 'class', 'instance', 'structure', 'inductive', 'variable', 'variables', 'universe', 'universes', 'attribute', 'namespace', 'section', 'noncomputable', 'meta', 'mutual', 'do', 'have', 'let', 'assume', 'suffices', 'show', 'from', 'local', 'notation', 'open', 'export', 'by', 'begin', 'end', 'λ', '∀', 'Π', '∃', 'Σ', 'if', 'this', 'break', 'protected', 'private', 'else', '#print', '#check', '#eval', '#reduce', '#help', '#exit', '#unify', '#compile', 'set_option', 'import', 'prelude'],
     typeKeywords: ['Sort', 'Prop', 'Type'],
     operators: ['=', '>', '<', '!', '~', '?', ':', '==', '<=', '>=', '!=', '&&', '||', '++', '--', '+', '-', '*', '/', '&', '|', '^', '%', '<<', '>>', '>>>', '+=', '-=', '*=', '/=', '&=', '|=', '^=', '%=', '<<=', '>>=', '>>>=', '→'],
     // we include these common regular expressions
